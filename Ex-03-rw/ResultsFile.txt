@@ -1,0 +1,9 @@
+For Revenue=$ 1000000.00
+Expenses=$ 350000.00
+Tax Rate=20.0%
+---------
+Earnings before tax: $650000.00
+Tax: $130000.00
+Profit after tax $520000.00
+Earnings/Profit ratio:1.250
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
