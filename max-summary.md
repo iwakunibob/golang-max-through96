@@ -447,3 +447,5 @@ func (n Note) Save() error {
 	return os.WriteFile(fileName, json, 0644)
 }
 ```
+## Interfaces and Generic Code
+
