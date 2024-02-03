@@ -449,3 +449,413 @@ func (n Note) Save() error {
 ```
 ## Interfaces and Generic Code
 
+Allows you to link func methods that can accept different types  
+All types must have the same common methods
+
+Can also embed other interfaces
+
+```go
+type saver interface { // An interface is a contract
+	Save() error // All types using it must have a Save method
+} // Note error/nil is returned
+
+type outputable interface { // Embedded interface can contain
+	saver     // other multiple interfaces
+	Display() // other multiple methods
+}
+
+func outputData(data outputable) error {
+	data.Display()
+	return saveData(data) // Embed interface func
+}
+func saveData(data saver) error { // Interface func
+	err := data.Save()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+```
+### The Any value is allowed type interface{} "any" is an alias
+```go 
+func printAnything(value any) {
+	fmt.Println(value)
+}
+```
+### 104. Type switching based on a value type
+```go
+func printSomething(value interface{}) {
+	switch value.(type) {
+	case int:
+		fmt.Println("Integer:", value)
+	case float64:
+		fmt.Println("Float:", value)
+	case string:
+		fmt.Println(value)
+	}
+	default:  // for any other type or can omit to ignore processing
+}
+```
+### 105. The extracting type operator can be used instead of switch
+switch is more compact but this is more flexible
+```go
+func printSomething(value interface{}) {
+	intVal, ok := value.(int)
+	if ok {
+		fmt.Println("Integer:", intVal)
+		return
+	}
+	floatVal, ok := value.(float64)
+	if ok {
+		fmt.Println("Float:", floatVal)
+		return
+	}
+	stringVal, ok := value.(string)
+	if ok {
+		fmt.Println("String:", stringVal)
+		return
+	}
+}
+```
+### 107 Generic Types 
+Can be used to write functions that work for multiple types
+```go
+func main() {
+	result := add(1, 2)
+	fmt.Println(result)
+}
+func add[T int | float64 | string](a, b T) T {
+	return a + b
+}
+```
+## 113. Arrays
+Arrays can not be changed in Go  
+Indexes cannot be negative  
+Arrays are pass by reference even with = 
+len() describes length of a slice  
+cap() describes capacity of a slice to right
+```go
+func main() {
+	// This is am array declaration not expandable
+	var productNames [3]string
+	productNames = [3]string{"Book", "Novel"}
+	productNames[2] = "Carpet"
+	var qty [3]int = [3]int{1, 3, 4}
+	fmt.Println(productNames, qty)
+
+	// This is a shorter combined form
+	carMake := [3]string{"vw", "gm", "ford"}
+	fmt.Println("cars = ", carMake)
+	prices := [4]float64{3.5, 7.5, 12, 20.0}
+	fmt.Println("prices = ", prices)
+
+	// Arrays access using slices are references
+	featuredPrices := prices[1:]
+	fmt.Println("featured = ", featuredPrices)
+	featuredPrices[0] = 299.99
+	fmt.Println("featured = ", featuredPrices)
+	fmt.Println("prices = ", prices)
+	highlightedPrices := featuredPrices[:2]
+	fmt.Println("highlighted = ", highlightedPrices)
+	fmt.Println("prices = ", prices)
+	fmt.Println(len(highlightedPrices), cap(highlightedPrices))
+	highlightedPrices[0] = -5.4
+	fmt.Println("prices = ", prices)
+	highlightedPrices = highlightedPrices[0:]
+	fmt.Println(highlightedPrices)
+	fmt.Println(len(highlightedPrices), cap(highlightedPrices))
+}
+```
+### 114. Slices are dynamic arrays
+Slices can be declared without a dimension  
+Can append with append(slice, 1, 2, ...)
+Cand delete with slice reassignment
+```go
+func main() {
+	itemPrices := []float64{1.5, 2.75}
+	fmt.Println(itemPrices)
+	morePrices := append(itemPrices, 3.25, 4.5, 5)
+	fmt.Println(itemPrices)
+	fmt.Println(morePrices)
+	morePrices[1] = 7777.77
+	fmt.Println(itemPrices)
+	morePrices = morePrices[1:] // delete 1st
+	fmt.Println(morePrices)
+	morePrices = morePrices[:3] // delete last
+	fmt.Println(morePrices)
+}
+```
+#### Excercise 5 Arrays of Structs
+```go
+type product struct {
+	title       string
+	price       float64
+	description string
+	quanity     int
+}
+
+func main() {
+	hobbies := [3]string{"bicycling", "programming", "xc-skiing"}
+	fmt.Println(hobbies) // 1.
+	fmt.Println(hobbies[:1])
+	fmt.Println(hobbies[1:3]) // 2.
+	bestHobbies := hobbies[0:2]
+	otherHobbies := hobbies[:2]
+	fmt.Println(bestHobbies, "\n", otherHobbies)
+	otherHobbies = hobbies[1:3]
+	fmt.Println(otherHobbies)
+	courseGoals := []string{"learn go", "make go state machine"}
+	fmt.Println(courseGoals)
+	courseGoals[1] = "GPIO control"
+	courseGoals = append(courseGoals, "State Machine", "Thesis Stuff")
+	fmt.Println(courseGoals)
+
+	// Bonus
+	parts := []product{
+		{"wheel", 34.5, "rubber tire and rim", 5},
+		{"lights", 10, "halogen lights", 3},
+	}
+	fmt.Println(parts)
+	addpart := product{"motor", 123, "v4 engine", 3}
+	parts = append(parts, addpart)
+	fmt.Println(parts)
+}
+```
+#### 116. Unpacking operator  
+... unpacks list items individually where needed   
+## 118. Maps  
+Can use any type for keys  
+Associates a key to data  
+Similar to arrays with keys instead of indexes  
+for loop using range is useful for arrays, slices index:value pairing,  
+and maps  key:value pairing, 
+```go
+// Alias types
+type floatMap map[string]float64
+// method func definition
+func (m floatMap) output() {
+	fmt.Println(m)
+}
+func main() {
+	elements := map[string]string{
+		"Au": "Gold",
+		"Ag": "Silver",
+		"H":  "Hydrogen",
+		"He": "Helium",
+	}
+	fmt.Println(elements)
+	elements["C"] = "Carbon"
+	elements["O"] = "Oxygen"
+	elements["Li"] = "Lithium"
+	fmt.Println(elements)
+	delete(elements, "He")
+	fmt.Println(elements)
+	makeArray()
+	makeMap()
+}
+func makeArray() {
+	// make keyword predefines array length 2 and capicity 5
+	userNames := make([]string, 2, 5)
+	userNames[0] = "Totoro"
+	userNames = append(userNames, "Mei", "Sasuki")
+	fmt.Println(userNames)
+	for i, val := range userNames {
+		fmt.Printf("Name[%d] = %s\n", i, val)
+	}
+}
+func makeMap() {
+	// make keyword defines map initial length for efficiency
+	// courseRatings := make(map[string]float64, 4)
+	courseRatings := make(floatMap, 5) // Using alias
+	courseRatings["go"] = 4.7
+	courseRatings["vue"] = 4.8
+	fmt.Println(courseRatings)
+	courseRatings.output() // Same with alias used for method
+	for i, val := range courseRatings {
+		fmt.Printf("Key: %s = Value: %f\n", i, val)
+	}
+}
+```
+## 126. Functions Deep Dive
+func is a first class value  
+functions can be parameters for other functions in go  
+```go
+package main
+
+import "fmt"
+
+func main() {
+	dice := []int{1, 2, 3, 4, 5, 6}
+	fmt.Println(dice)
+	// pass function as argument no ()
+	doubled := multiplyNums(&dice, double)
+	fmt.Println(doubled)
+	tripled := multiplyNums(&dice, triple)
+	fmt.Println(tripled)
+}
+func multiplyNums(num *[]int, multiple func(int) int) []int {
+	mNums := []int{}
+	for _, val := range *num {
+		mNums = append(mNums, multiple(val))
+	}
+	return mNums
+}
+func double(num int) int {
+	return num + num
+}
+func triple(num int) int {
+	return num + num + num
+}
+```
+### 127. Returning functions values
+Alias can be created for long string of types  
+Functions can be returned from functions using id only
+```go
+package main
+
+import "fmt"
+
+// Can make custom type for long list of types
+type transformFn func(int) int
+
+func main() {
+	decades := []int{1, 10, 100, 1000}
+	fmt.Println(decades)
+	// pass function as argument no ()
+	transformFn1 := getTransformerFn(&decades)
+	transformDecades := multipleOfNums(&decades, transformFn1)
+	fmt.Println(transformDecades)
+} //                                   func(int) int
+func multipleOfNums(num *[]int, multiple transformFn) []int {
+	mNums := []int{}
+	for _, val := range *num {
+		mNums = append(mNums, multiple(val))
+	}
+	return mNums
+}
+func getTransformerFn(sequence *[]int) transformFn {
+	return double
+}
+func double(num int) int {
+	return num + num
+}
+```
+### 128. Anonymus Functions
+Feature that defines a function at one place
+Function is defined and called at one place in code
+Function has no identifier so cannot be called from anywhere except where defined
+```go
+func main() {
+	dice := []int{1, 2, 3, 4, 5, 6}
+	fmt.Println(dice)
+	doubleRoll := transformNumbers(&dice, func(num int) int {
+		return num * 2
+	})
+	fmt.Println(doubleRoll)
+	tripleRoll := transformNumbers(&dice, func(num int) int {
+		return num * 3
+	})
+	fmt.Println(tripleRoll)
+	squareDice := transformNumbers(&dice, func(num int) int {
+		return num * num
+	})
+	fmt.Println(squareDice)
+}
+func transformNumbers(numbers *[]int, transform func(int) int) []int {
+	dNums := []int{}
+	for _, val := range *numbers {
+		dNums = append(dNums, transform(val))
+	}
+	return dNums
+}
+```
+### 129. Closures and Factory functions
+Closure uses variable value locked in to anonymous func
+```go
+func main() {
+	dice := []int{1, 2, 3, 4, 5, 6}
+	fmt.Println(dice)
+	double := factorFactoryFunc(2)
+	triple := factorFactoryFunc(3)
+	square := powerFactoryFunc(2)
+	cube := powerFactoryFunc(3)
+	// factorial := factorialXformer()
+	fmt.Println(transformNums(&dice, double))
+	fmt.Println(transformNums(&dice, triple))
+	fmt.Println(transformNums(&dice, square))
+	fmt.Println(transformNums(&dice, cube))
+	fmt.Println(transformNums(&dice, factorial))
+}
+func transformNums(nums *[]int, transform func(int) int) []int {
+	dNums := []int{}
+	for _, val := range *nums {
+		dNums = append(dNums, transform(val))
+	}
+	return dNums
+}
+func factorFactoryFunc(factor int) func(int) int {
+	// Closure says the num and factor are recreated in factory func
+	return func(num int) int {
+		return num * factor
+	}
+}
+func powerFactoryFunc(exponent int) func(int) int {
+	// Closure says the num and factor are recreated in factory func
+	return func(num int) int {
+		power := num
+		for i := 1; i < exponent; i++ {
+			power = power * num
+		}
+		return power
+	}
+}
+func factorial(num int) int {
+	result := 1
+	for i := 1; i <= num; i++ {
+		result = result * i
+	}
+	return result
+}
+```
+### Recursive function 
+Call themselves recursively
+must have a if-return to end recursion
+Above factorial function done recursively
+```go
+func factorial(num int) int {
+	if num == 0 {
+		return 1
+	}
+	return num * factorial(num-1)
+}
+```
+### Variadic function 
+Has a variable number of arguments that are turned into a slice
+arguments are represented by ... meaning   
+collect all remaining arguments as parameters and put in slice
+Can also be used to convert slice to list of arguments
+
+```go
+func main() {
+	decades := []int{1, 10, 100, 1000}
+	numbers, sum := sumTotal(1, 2, 3, 4, 5, 6)
+	fmt.Printf("Sum of %v = %v\n", numbers, sum)
+	// pass slice to variadic function
+	_, totalDecades := sumTotal(decades...)
+	fmt.Printf("Sum of %v = %v\n", decades, totalDecades)
+}
+
+// Can accept a list of values ...
+func sumTotal(numbers ...int) ([]int, int) {
+	sum := 0
+	for _, num := range numbers {
+		sum += num
+	}
+	return numbers, sum
+}
+
+```
+
+
+
